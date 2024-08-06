@@ -28,15 +28,9 @@ pub fn main() void {
     rl.initWindow(screenWidth, screenHeight, "Snake Game In Zig!");
     defer rl.closeWindow();
 
-    // Init array w/ empty vec2s
-    for (&snakePositions) |*position| {
-        position.* = Vector2.init(-5, -5);
-    }
-
-    //Set Spawn Pos
-    snakePositions[0] = spawnPosition();
-
     rl.setTargetFPS(60);
+
+    resetSnake();
 
     while (!rl.windowShouldClose()) {
         rl.beginDrawing();
@@ -60,7 +54,7 @@ pub fn main() void {
             }
         }
 
-        rl.clearBackground(rl.Color.white);
+        rl.clearBackground(rl.Color.init(171, 204, 154, 100));
     }
 }
 
@@ -69,7 +63,15 @@ fn drawSnake() void {
 
     var i: usize = 0;
     while (i <= tailLength) {
-        rl.drawRectangleV(snakePositions[i].multiply(POSITIONSIZE), POSITIONSIZE, rl.Color.black);
+        const rect = rl.Rectangle{
+            .x = snakePositions[i].multiply(POSITIONSIZE).x,
+            .y = snakePositions[i].multiply(POSITIONSIZE).y,
+            .width = POSITIONSIZE.x,
+            .height = POSITIONSIZE.x,
+        };
+
+        rl.drawRectangleRounded(rect, 0.4, 4, rl.Color.init(40, 40, 48, 160));
+
         i += 1;
     }
 }
@@ -93,14 +95,24 @@ fn moveSnake() void {
 
 fn spawnFood() void {
     if (isFoodActive) {
-        const posX: i32 = Rand.intRangeLessThan(i32, 0, 15);
-        const posY: i32 = Rand.intRangeLessThan(i32, 0, 15);
+        var posX: i32 = Rand.intRangeLessThan(i32, 0, 24);
+        var posY: i32 = Rand.intRangeLessThan(i32, 0, 24);
+
+        for (&snakePositions) |*position| {
+            if ((posX) == @as(i32, @intFromFloat(position.x))) {
+                posX = Rand.intRangeLessThan(i32, 0, 15);
+            }
+            if (posY == @as(i32, @intFromFloat(position.y))) {
+                posY = Rand.intRangeLessThan(i32, 0, 15);
+            }
+        }
 
         foodPos = Vector2.init(@floatFromInt(posX), @floatFromInt(posY));
 
         isFoodActive = false;
     }
-    rl.drawRectangleV(foodPos.multiply(POSITIONSIZE), POSITIONSIZE, rl.Color.red);
+    const foodRect = rl.Rectangle{ .x = foodPos.multiply(POSITIONSIZE).x, .y = foodPos.multiply(POSITIONSIZE).y, .width = POSITIONSIZE.x, .height = POSITIONSIZE.x };
+    rl.drawRectangleRounded(foodRect, 0.4, 4, rl.Color.init(255, 115, 118, 255));
 }
 
 fn checkInputs() void {
@@ -139,10 +151,34 @@ fn checkCollisions() void {
         tailLength += 1;
         isFoodActive = true;
     }
+    //Check out Of Bounds
+    if (snakePositions[0].x * 25 > 575) {
+        isGameOver = true;
+        resetSnake();
+    }
+    if (snakePositions[0].x * 25 < 0) {
+        isGameOver = true;
+        resetSnake();
+    }
+    if (snakePositions[0].y * 25 > 575) {
+        isGameOver = true;
+        resetSnake();
+    }
+    if (snakePositions[0].y * 25 < 0) {
+        isGameOver = true;
+        resetSnake();
+    }
 }
 
 fn spawnPosition() Vector2 {
     const x = Rand.intRangeLessThan(i32, 3, 22);
-    const y = Rand.intRangeLessThan(i32, 3, 22);
+    const y = Rand.intRangeLessThan(i32, 3, 18);
     return Vector2.init(@floatFromInt(x), @floatFromInt(y));
+}
+
+fn resetSnake() void {
+    for (&snakePositions) |*position| {
+        position.* = Vector2.init(-5, -5);
+    }
+    snakePositions[0] = spawnPosition();
 }
