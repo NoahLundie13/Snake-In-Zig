@@ -2,7 +2,7 @@ const rl = @import("raylib");
 const std = @import("std");
 
 const Vector2 = rl.Vector2;
-const SNAKESIZE = 577;
+const SNAKESIZE = 530;
 const POSITIONSIZE: Vector2 = Vector2.init(25, 25);
 
 const Rand = std.crypto.random;
@@ -146,10 +146,10 @@ fn spawnFood() void {
 
         for (&snakePositions) |*position| {
             while ((posX) == @as(i32, @intFromFloat(position.x))) {
-                posX = Rand.intRangeLessThan(i32, 0, 15);
+                posX = Rand.intRangeLessThan(i32, 0, 24);
             }
             while (posY == @as(i32, @intFromFloat(position.y))) {
-                posY = Rand.intRangeLessThan(i32, 0, 15);
+                posY = Rand.intRangeLessThan(i32, 0, 24);
             }
         }
 
@@ -250,6 +250,7 @@ fn resetSnake() void {
     }
     snakePositions[0] = spawnPosition();
     tailLength = 0;
+    moveTimer = 6;
 }
 
 fn showScore() void {
